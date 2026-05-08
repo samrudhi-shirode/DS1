@@ -1,0 +1,263 @@
+## Assignment 5 - Token Ring
+
+//Tokenring.java
+import java.util.Scanner;   // Import Scanner class for user input
+
+public class Tokenring {
+
+	public static void main(String args[]) {
+
+		// Create scanner object
+		Scanner scanner = new Scanner(System.in);
+
+		// Input total number of nodes
+		System.out.print("Enter Number Of Node: ");
+
+		int numberOfNode = scanner.nextInt();
+
+		// Display ring structure
+		System.out.print("Ring Formed: ");
+
+		// Print nodes in ring
+		for (int i = 0; i < numberOfNode; i++) {
+
+			System.out.print(i + "-");
+		}
+
+		// Connect last node to first node
+		System.out.println("0");
+
+		// Initially token is with node 0
+		int token = 0;
+
+		// Infinite loop for communication
+		while (true) {
+
+			// Input sender node
+			System.out.print("Enter Sender: ");
+
+			int sender = scanner.nextInt();
+
+			// Input receiver node
+			System.out.print("Enter Receiver: ");
+
+			int receiver = scanner.nextInt();
+
+			// Input data/message
+			System.out.print("Enter Date To Send: ");
+
+			int data = scanner.nextInt();
+
+			// Display token passing
+			System.out.print("Token Passing: ");
+
+			// Pass token from current token holder to sender
+			for (int i = token; i < sender; i++) {
+
+				System.out.print(i + "->");
+			}
+
+			// If receiver is next immediate node
+			if(receiver == sender + 1) {
+
+				// Sender sends data
+				System.out.println(
+
+					"Sender: " + sender +
+
+					" Sending The Data: " + data
+				);
+
+				// Receiver receives data
+				System.out.println(
+
+					"Receiver: " + receiver +
+
+					" Received The Data: " + data
+				);
+
+			} else {
+
+				// Display sender
+				System.out.println(sender);
+
+				// Sender sends data
+				System.out.println(
+
+					"Sender: " + sender +
+
+					" Sending The Data: " + data
+				);
+
+				// Forward data around ring
+				for (
+
+					int i = sender;
+
+					i != receiver;
+
+					i = (i+1) % numberOfNode
+				) {
+
+					System.out.println(
+
+						"Data: " + data +
+
+						" Forwared By: " + i
+					);
+				}
+
+				// Receiver receives data
+				System.out.println(
+
+					"Receiver: " + receiver +
+
+					" Received The Data: " + data
+				);
+			}
+
+			// Sender now holds token
+			token = sender;
+		}
+	}
+}
+
+
+
+
+## Commands to Run
+Step 1 — Compile Program
+javac Tokenring.java
+Meaning
+
+Compiles Java program.
+
+Step 2 — Run Program
+java Tokenring
+
+
+##MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+
+In distributed systems:
+Multiple processes may want to access shared resource.
+If all access together:
+data corruption occurs
+race condition occurs
+Token Ring Algorithm solves this.
+
+##HOW TOKEN RING WORKS
+Nodes are arranged in circular ring.
+Example:
+0 → 1 → 2 → 3 → 4 → 0
+A special message called:
+TOKEN
+moves around ring.
+Only node having token can:
+
+
+send data
+
+
+enter critical section
+
+
+
+MOST IMPORTANT LOGIC
+token = sender;
+This means:
+
+
+sender now owns token.
+
+
+
+IMPORTANT LOOP
+i = (i+1) % numberOfNode
+Meaning
+Moves ring circularly.
+Example:
+If last node = 4
+Then:
+(4+1)%5 = 0
+returns to first node.
+This creates circular ring.
+
+TOKEN PASSING CONCEPT
+Suppose:
+Token with Node 0Sender = 3
+Token path:
+0 -> 1 -> 2 -> 3
+Now node 3 gets token.
+Then only node 3 can send data.
+
+DATA FORWARDING CONCEPT
+If receiver is far away:
+Example:
+Sender = 1Receiver = 4
+Data travels:
+1 -> 2 -> 3 -> 4
+Each node forwards message.
+
+Expected Output Example
+Enter Number Of Node: 5Ring Formed:0-1-2-3-4-0Enter Sender: 1Enter Receiver: 4Enter Data To Send: 100
+Output:
+Token Passing: 0->1Sender: 1 Sending The Data: 100Data: 100 Forwarded By: 1Data: 100 Forwarded By: 2Data: 100 Forwarded By: 3Receiver: 4 Received The Data: 100
+
+INTERNAL WORKING OF PRACTICAL
+STEP 1:
+Ring structure created.
+STEP 2:
+Token initially with node 0.
+STEP 3:
+Sender requests token.
+STEP 4:
+Token moves through ring.
+STEP 5:
+Sender receives token.
+STEP 6:
+Sender sends data.
+STEP 7:
+Intermediate nodes forward data.
+STEP 8:
+Receiver receives message.
+STEP 9:
+Token updated.
+
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is Token Ring Algorithm?
+Mutual exclusion algorithm using circulating token.
+
+Q2. What is token?
+Special control message allowing access.
+
+Q3. Why token is needed?
+To avoid simultaneous access to resource.
+
+Q4. What is critical section?
+Shared resource access section.
+
+Q5. What happens if token is lost?
+System stops until token regenerated.
+
+Q6. Why use modulo operator (%)?
+(i+1)%numberOfNode
+Used for circular movement in ring.
+
+Q7. Advantage of Token Ring?
+No starvation.
+
+Q8. Disadvantage of Token Ring?
+If token lost, communication stops.
+
+Q9. Why only token holder can send data?
+To maintain mutual exclusion.
+
+Q10. Is Token Ring centralized or distributed?
+Distributed algorithm.
+
+
+## Mutual exclusion algorithm
+In a distributed system, mutual exclusion ensures that only one process can access a shared resource (like a database or file) at a time. Because these systems lack shared memory or a global clock, they must rely on message passing to coordinate access. 
+
+# Difference between physical clock and logical clock 
+Distributed system mein Physical Clocks real-world time (seconds/minutes) dikhate hain, jo quartz oscillator se chalte hain aur drift ho sakte hain. Logical Clocks events ka order (causality) maintain karte hain, jaise Lamport timestamps, jo sirf counter use karte hain. Physical clock time batata hai, jabki logical clock causality (kaunsa event pehle hua) ensure karta hai

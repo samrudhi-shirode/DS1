@@ -1,0 +1,324 @@
+## Assignment 6 - Bully and Ring Algorithm
+# Bully Algorithm
+
+class BullyAlgorithm:
+
+    # Constructor
+    def __init__(self, processes, coordinator=None):
+
+        # Store process list
+        self.processes = processes
+
+        # Highest process becomes coordinator initially
+        self.coordinator = coordinator or max(processes)
+
+
+    # Method to check whether process is alive
+    def is_alive(self, process_id):
+
+        # Return True if process exists
+        return process_id in self.processes
+
+
+    # Election process
+    def hold_election(self, initiator):
+
+        # Display election start
+        print(f"Process {initiator} starts election.")
+
+        # Find processes having higher IDs
+        higher_processes = [
+
+            p for p in self.processes if p > initiator
+        ]
+
+
+        # If no higher process exists
+        if not higher_processes:
+
+            # Initiator becomes coordinator
+            self.coordinator = initiator
+
+            print(
+
+                f"Process {initiator} "
+                f"becomes the new coordinator."
+            )
+
+        else:
+
+            # Send election messages to higher processes
+            for p in higher_processes:
+
+                print(
+
+                    f"Process {initiator} "
+                    f"sends election message to {p}."
+                )
+
+            # Check which higher processes respond
+            responses = [
+
+                p for p in higher_processes
+
+                if self.is_alive(p)
+            ]
+
+            # If responses received
+            if responses:
+
+                print(
+
+                    f"Process {initiator} "
+                    f"gets responses from: {responses}"
+                )
+
+                # Highest process among responses
+                highest = max(responses)
+
+                # Highest process starts election
+                self.hold_election(highest)
+
+            else:
+
+                # No response means initiator becomes coordinator
+                self.coordinator = initiator
+
+                print(
+
+                    f"No higher processes responded. "
+
+                    f"{initiator} becomes coordinator."
+                )
+
+
+# Example execution
+print("----- Bully Algorithm -----")
+
+# Active processes
+processes = [1, 2, 3, 5, 6]
+
+# Create bully object
+bully = BullyAlgorithm(processes)
+
+# Start election from process 3
+bully.hold_election(initiator=3)
+
+
+## Ring Algorithm code
+# --------------------------------------------------
+# Ring Algorithm
+# --------------------------------------------------
+
+class RingAlgorithm:
+
+    # Constructor
+    def __init__(self, processes):
+
+        # Sort processes
+        self.processes = sorted(processes)
+
+        # Create logical ring
+        self.ring = self.processes[:]
+
+        # Initially no coordinator
+        self.coordinator = None
+
+
+    # Check whether process is alive
+    def is_alive(self, process_id):
+
+        return process_id in self.ring
+
+
+    # Election process
+    def hold_election(self, initiator):
+
+        print("\n----- Ring Algorithm -----")
+
+        # Display election start
+        print(f"Process {initiator} starts election.")
+
+        # Election message list
+        election_list = [initiator]
+
+        # Find initiator index in ring
+        current_index = self.ring.index(initiator)
+
+        while True:
+
+            # Move to next process circularly
+            current_index = (
+
+                current_index + 1
+            ) % len(self.ring)
+
+            # Get next process
+            next_process = self.ring[current_index]
+
+            # Stop if message returned to initiator
+            if next_process == initiator:
+                break
+
+            # Display message passing
+            print(
+
+                f"Election message from "
+
+                f"{election_list[-1]} "
+
+                f"to {next_process}"
+            )
+
+            # Add process into election list
+            election_list.append(next_process)
+
+        # Highest ID becomes coordinator
+        winner = max(election_list)
+
+        self.coordinator = winner
+
+        print(
+
+            f"Process {winner} "
+
+            f"is elected as the new coordinator."
+        )
+
+
+# Example execution
+
+# Active processes
+processes = [1, 2, 4, 6]
+
+# Create ring object
+ring = RingAlgorithm(processes)
+
+# Start election from process 2
+ring.hold_election(initiator=2)
+
+
+
+##Command to Run
+python code.py
+OR
+python3 code.py
+
+##MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+Distributed systems need:
+Leader Election
+A coordinator/leader is needed for:
+synchronization
+resource allocation
+communication control
+If leader crashes:
+new leader must be elected
+These algorithms solve that problem.
+
+
+
+
+BULLY ALGORITHM CONCEPT
+Highest ID process becomes coordinator.
+Example:
+Processes = [1,2,3,5,6]
+If process 3 starts election:
+3 → sends message to 5 and 6
+Since 6 has highest ID:
+6 becomes coordinator
+Higher ID “bullies” lower IDs.
+
+MOST IMPORTANT BULLY LOGIC
+higher_processes = [    p for p in self.processes if p > initiator]
+Meaning
+Find all processes with higher IDs.
+
+RECURSION CONCEPT
+self.hold_election(highest)
+Highest responding process again starts election.
+This continues until highest process wins.
+
+RING ALGORITHM CONCEPT
+Processes arranged in circular ring.
+Example:
+1 → 2 → 4 → 6 → 1
+Election message travels around ring.
+Each process adds its ID.
+Highest ID becomes coordinator.
+
+MOST IMPORTANT RING LOGIC
+(current_index + 1) % len(self.ring)
+Meaning
+Moves circularly in ring.
+Example:
+Last process → First process
+
+HOW RING ALGORITHM WORKS
+If process 2 starts election:
+2 → 4 → 6 → 1 → back to 2
+All IDs collected.
+Highest ID selected:
+6 becomes coordinator
+
+Expected Output — Bully Algorithm
+----- Bully Algorithm -----Process 3 starts election.Process 3 sends election message to 5.Process 3 sends election message to 6.Process 3 gets responses from: [5, 6]Process 6 becomes the new coordinator.
+
+Expected Output — Ring Algorithm
+----- Ring Algorithm -----Process 2 starts election.Election message from 2 to 4Election message from 4 to 6Election message from 6 to 1Process 6 is elected as the new coordinator.
+
+INTERNAL WORKING OF BULLY ALGORITHM
+STEP 1:
+Process detects coordinator failure.
+STEP 2:
+Election started.
+STEP 3:
+Election messages sent to higher processes.
+STEP 4:
+Higher processes respond.
+STEP 5:
+Highest process starts new election.
+STEP 6:
+Highest alive process becomes coordinator.
+
+INTERNAL WORKING OF RING ALGORITHM
+STEP 1:
+Election initiated.
+STEP 2:
+Election message circulates in ring.
+STEP 3:
+All IDs collected.
+STEP 4:
+Highest ID selected.
+STEP 5:
+Coordinator announced.
+
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is leader election?
+Selecting coordinator in distributed system.
+
+Q2. Why leader is needed?
+For synchronization and resource management.
+
+Q3. What is Bully Algorithm?
+Highest process ID becomes coordinator.
+
+Q4. Why called Bully Algorithm?
+Higher process IDs dominate lower IDs.
+
+Q5. What is Ring Algorithm?
+Election performed using logical ring.
+
+Q6. Difference between Bully and Ring?
+BullyRingHighest ID directly winsMessage circulatesFasterSimplerMore messagesLess complex
+
+Q7. What happens if coordinator crashes?
+Election process starts again.
+
+Q8. What is election message?
+Message used to initiate election.
+
+Q9. Which algorithm has more message overhead?
+Bully Algorithm.
+
+Q10. Which algorithm is centralized?
+Neither — both are distributed algorithms.

@@ -1,0 +1,243 @@
+## Assignment3: Ubuntu(OpenMPI and MPI)
+
+//sum_mpi.c
+
+#include <mpi.h>      // MPI library for parallel programming
+#include <stdio.h>    // Standard input/output library
+#include <stdlib.h>   // Standard library for malloc()
+
+int main(int argc, char* argv[]) {
+
+    // rank = processor id
+    // size = total number of processors
+    // N = total array size
+    int rank, size, N = 16;
+
+    // Main array
+    // local_sum = partial sum of each processor
+    // total_sum = final sum
+    int array[N], local_sum = 0, total_sum = 0;
+
+    // Initialize MPI environment
+    MPI_Init(&argc, &argv);
+
+    // Get processor rank (ID)
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // Get total number of processors
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Calculate how many elements each processor gets
+    int elements_per_proc = N / size;
+
+    // Dynamically allocate memory for sub-array
+    int *sub_array =
+
+        (int*)malloc(elements_per_proc * sizeof(int));
+
+    // Root processor initializes array
+    if (rank == 0) {
+
+        // Fill array with values 1 to 16
+        for (int i = 0; i < N; i++) {
+
+            array[i] = i + 1;
+        }
+    }
+
+    // Scatter array among processors
+    MPI_Scatter(
+
+        array,                  // Original array
+        elements_per_proc,      // Number of elements sent
+        MPI_INT,                // Data type
+
+        sub_array,              // Receiver array
+        elements_per_proc,      // Number of received elements
+        MPI_INT,                // Data type
+
+        0,                      // Root processor
+        MPI_COMM_WORLD          // Communicator
+    );
+
+    // Calculate partial sum
+    for (int i = 0; i < elements_per_proc; i++) {
+
+        local_sum += sub_array[i];
+    }
+
+    // Display partial sum of each processor
+    printf(
+
+        "Processor %d - Partial Sum: %d\n",
+
+        rank,
+        local_sum
+    );
+
+    // Combine all partial sums
+    MPI_Reduce(
+
+        &local_sum,     // Send buffer
+        &total_sum,     // Receive buffer
+
+        1,              // Number of elements
+        MPI_INT,        // Data type
+
+        MPI_SUM,        // Reduction operation
+
+        0,              // Root processor
+
+        MPI_COMM_WORLD  // Communicator
+    );
+
+    // Root processor prints final total sum
+    if (rank == 0) {
+
+        printf("Total Sum: %d\n", total_sum);
+    }
+
+    // Free dynamically allocated memory
+    free(sub_array);
+
+    // End MPI environment
+    MPI_Finalize();
+
+    return 0;
+}
+
+
+## Commands to run
+Step 1 — Update Linux Packages
+sudo apt update
+Meaning:Updates package list.
+
+Step 2 — Install MPI
+sudo apt install mpich
+Meaning:Installs MPI compiler and runtime.
+
+Step 3 — Compile Program
+mpicc sum_mpi.c -o sum_mpi
+Meaning
+Part	Meaning
+mpicc	MPI C compiler
+sum_mpi.c	Source code
+-o sum_mpi	Output executable
+Step 4 — Run Program
+mpirun -np 4 ./sum_mpi
+Meaning
+Part	Meaning
+mpirun	Runs MPI program
+-np 4	Use 4 processors
+./sum_mpi	Executable file
+MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+
+The array is divided among processors.
+
+Example:
+
+Array = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+
+With 4 processors:
+
+Processor	Elements
+P0	1 2 3 4
+P1	5 6 7 8
+P2	9 10 11 12
+P3	13 14 15 16
+
+Each processor calculates:
+
+local sum
+
+Then:
+
+MPI_Reduce combines all sums
+
+Final sum returned to processor 0.
+
+## MOST IMPORTANT MPI FUNCTIONS
+MPI_Init()
+Starts MPI environment.
+
+MPI_Comm_rank()
+Returns processor ID.
+Example:
+0 1 2 3
+
+MPI_Comm_size()
+Returns total processors.
+
+MPI_Scatter()
+Distributes array among processors.
+
+MPI_Reduce()
+Collects and combines partial sums.
+
+MPI_Finalize()
+Ends MPI environment.
+
+Expected Output
+Processor 0 - Partial Sum: 10
+Processor 1 - Partial Sum: 26
+Processor 2 - Partial Sum: 42
+Processor 3 - Partial Sum: 58
+
+Total Sum: 136
+
+##VERY IMPORTANT VIVA QUESTIONS
+Q1. What is MPI?
+Message Passing Interface used for parallel programming.
+
+Q2. Why MPI is used?
+To divide work among multiple processors.
+
+Q3. What is rank?
+Unique processor ID.
+
+Q4. What does MPI_Scatter do?
+Distributes data among processors.
+
+Q5. What does MPI_Reduce do?
+Combines results from all processors.
+
+Q6. What is root processor?
+Processor with rank 0.
+
+Q7. What is local_sum?
+Partial sum computed by each processor.
+
+Q8. Why use malloc()?
+Dynamic memory allocation for sub-array.
+
+Q9. Difference between parallel and distributed computing?
+Parallel	        Distributed
+Multiple processors	Multiple systems
+Shared memory possible	Separate memory
+
+Q10. Why is MPI faster?
+Multiple processors work simultaneously.
+
+
+## INTERNAL WORKING OF PRACTICAL
+
+STEP 1:
+MPI environment starts.
+
+STEP 2:
+Processors created.
+
+STEP 3:
+Root processor initializes array.
+
+STEP 4:
+MPI_Scatter divides array.
+
+STEP 5:
+Each processor calculates local sum.
+
+STEP 6:
+MPI_Reduce combines sums.
+
+STEP 7:
+Root processor prints total sum.

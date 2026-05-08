@@ -1,0 +1,389 @@
+## Assignment 7
+
+///client/index.html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <!-- Title shown in browser tab -->
+  <title>CalcNet</title>
+
+  <style>
+
+    /* Page styling */
+    body {
+
+      font-family: Arial;
+
+      text-align: center;
+
+      background: #111;
+
+      color: #fff;
+    }
+
+    /* Input and button styling */
+    input, button {
+
+      padding: 10px;
+
+      margin: 5px;
+    }
+
+    /* Mouse pointer on button */
+    button {
+
+      cursor: pointer;
+    }
+
+    /* Result display styling */
+    #result {
+
+      font-size: 20px;
+
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Heading -->
+<h2>CalcNet - Distributed Calculator</h2>
+
+<!-- Input box for number A -->
+<input
+type="number"
+id="a"
+placeholder="Enter A">
+
+<!-- Input box for number B -->
+<input
+type="number"
+id="b"
+placeholder="Enter B">
+
+<br>
+
+<!-- Addition button -->
+<button onclick="calc('add')">+</button>
+
+<!-- Subtraction button -->
+<button onclick="calc('subtract')">-</button>
+
+<!-- Multiplication button -->
+<button onclick="calc('multiply')">*</button>
+
+<!-- Division button -->
+<button onclick="calc('divide')">/</button>
+
+<!-- Result area -->
+<div id="result">Result: --</div>
+
+<script>
+
+/* Server API URL */
+const API = "http://localhost:3000";
+
+/* Function called when user clicks button */
+async function calc(op) {
+
+  // Get value of A
+  let a = document.getElementById("a").value;
+
+  // Get value of B
+  let b = document.getElementById("b").value;
+
+  // Check if inputs are empty
+  if (a === "" || b === "") {
+
+    document.getElementById("result").innerText =
+    "Enter numbers!";
+
+    return;
+  }
+
+  try {
+
+    // Send request to server
+    let res = await fetch(
+
+      `${API}/${op}?a=${a}&b=${b}`
+    );
+
+    // Convert response into JSON
+    let data = await res.json();
+
+    // Display result or error
+    document.getElementById("result").innerText =
+
+      data.success
+
+      ? "Result: " + data.result
+
+      : data.error;
+
+  } catch {
+
+    // Display error if server not running
+    document.getElementById("result").innerText =
+    "Server error!";
+  }
+}
+</script>
+
+</body>
+</html>
+
+//server/server.js
+const express = require("express");   // Import Express framework
+
+const cors = require("cors");         // Import CORS middleware
+
+// Create Express application
+const app = express();
+
+
+// Enable CORS
+// Allows frontend and backend communication
+app.use(cors());
+
+
+// Home route
+app.get("/", (req, res) => {
+
+  res.send("Server running");
+});
+
+
+// Route for arithmetic operations
+app.get("/:op", (req, res) => {
+
+  // Get operation from URL
+  let { op } = req.params;
+
+  // Get values from query parameters
+  let { a, b } = req.query;
+
+  // Convert string values into numbers
+  a = Number(a);
+
+  b = Number(b);
+
+  // Variable to store result
+  let result;
+
+  // Perform operation
+  switch(op) {
+
+    // Addition
+    case "add":
+
+      result = a + b;
+
+      break;
+
+    // Subtraction
+    case "subtract":
+
+      result = a - b;
+
+      break;
+
+    // Multiplication
+    case "multiply":
+
+      result = a * b;
+
+      break;
+
+    // Division
+    case "divide":
+
+      // Check divide by zero
+      if (b === 0)
+
+        return res.json({
+
+          success: false,
+
+          error: "Divide by 0"
+        });
+
+      result = a / b;
+
+      break;
+
+    // Invalid operation
+    default:
+
+      return res.json({
+
+        success: false,
+
+        error: "Invalid operation"
+      });
+  }
+
+  // Send successful response
+  res.json({
+
+    success: true,
+
+    result
+  });
+});
+
+
+// Start server on port 3000
+app.listen(3000, () =>
+
+  console.log("http://localhost:3000")
+);
+
+
+
+
+## Commands to Run
+Step 1 — Open Server Folder
+cd server
+Step 2 — Install Node Modules
+npm install
+Meaning
+
+Installs:
+
+Express
+CORS
+other dependencies
+Step 3 — Start Server
+node server.js
+
+Expected Output:
+
+http://localhost:3000
+Step 4 — Open client/index.html
+
+Open in browser.
+
+
+MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+This is:
+Client-Server Distributed System
+Frontend:
+HTML + JavaScript
+Backend:
+Node.js + Express
+Client sends request to server.
+Server performs calculation.
+Server sends response back.
+
+HOW SYSTEM WORKS
+STEP 1 — User Enters Numbers
+Example:
+10 and 5
+
+STEP 2 — User Clicks Button
+Example:
++
+
+STEP 3 — fetch() Sends Request
+fetch(`${API}/${op}?a=${a}&b=${b}`)
+Generated URL:
+http://localhost:3000/add?a=10&b=5
+
+STEP 4 — Server Receives Request
+app.get("/:op")
+handles operation.
+
+STEP 5 — Server Calculates Result
+result = a + b
+
+STEP 6 — JSON Response Returned
+{  "success": true,  "result": 15}
+
+STEP 7 — Browser Displays Result
+Result: 15
+
+MOST IMPORTANT CODE CONCEPTS
+Express
+Node.js framework for web servers.
+
+CORS
+Allows frontend and backend communication.
+
+app.get()
+Creates API route.
+
+fetch()
+Sends HTTP request from browser.
+
+req.params
+Gets URL parameter.
+Example:
+addsubtract
+
+req.query
+Gets query values.
+Example:
+?a=10&b=5
+
+JSON Response
+Server sends data in JSON format.
+
+Example Request
+http://localhost:3000/add?a=10&b=5
+
+Example Response
+{  "success": true,  "result": 15}
+
+INTERNAL WORKING OF PRACTICAL
+STEP 1:
+Frontend loads.
+STEP 2:
+User enters numbers.
+STEP 3:
+Button click triggers fetch().
+STEP 4:
+HTTP request sent to server.
+STEP 5:
+Server receives request.
+STEP 6:
+Server performs operation.
+STEP 7:
+JSON response returned.
+STEP 8:
+Frontend displays result.
+
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is web service?
+Software communicating over HTTP.
+
+Q2. What is Express.js?
+Node.js framework for backend development.
+
+Q3. What is REST API?
+API using HTTP methods.
+
+Q4. What is fetch()?
+JavaScript function for HTTP requests.
+
+Q5. What is JSON?
+Lightweight data format.
+
+Q6. Why use CORS?
+Allows frontend-backend communication.
+
+Q7. What is req.query?
+Gets query parameters from URL.
+
+Q8. What is req.params?
+Gets route parameters.
+
+Q9. Difference between frontend and backend?
+FrontendBackendUser interfaceServer logicHTML/CSS/JSNode.js
+
+Q10. What happens if server is not running?
+Frontend shows:
+Server error!

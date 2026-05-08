@@ -1,0 +1,369 @@
+## Assignment2: CORBA\
+
+//Calculator.idl
+module CalculatorApp {          // Create module/package named CalculatorApp
+
+    // User-defined exception for divide by zero
+    exception DivisionByZero {};
+
+    // Remote interface
+    interface Calculator {
+
+        // Method for addition
+        float add(in float a, in float b);
+
+        // Method for subtraction
+        float subtract(in float a, in float b);
+
+        // Method for multiplication
+        float multiply(in float a, in float b);
+
+        // Method for division
+        // raises(DivisionByZero) means exception may occur
+        float divide(in float a, in float b)
+        raises(DivisionByZero);
+    };
+
+};
+
+//CalculatorServer.java
+import CalculatorApp.*;          // Import generated CORBA files
+import org.omg.CORBA.*;          // Import CORBA classes
+import org.omg.CosNaming.*;      // Import Naming Service classes
+import org.omg.PortableServer.*; // Import POA classes
+
+// Servant implementation class
+class CalculatorImpl extends CalculatorPOA {
+
+    // ORB reference variable
+    private ORB orb;
+
+    // Method to set ORB
+    public void setORB(ORB orb_val) {
+
+        // Store ORB reference
+        orb = orb_val;
+    }
+
+    // Addition method
+    public float add(float a, float b) {
+
+        // Return addition
+        return a + b;
+    }
+
+    // Subtraction method
+    public float subtract(float a, float b) {
+
+        // Return subtraction
+        return a - b;
+    }
+
+    // Multiplication method
+    public float multiply(float a, float b) {
+
+        // Return multiplication
+        return a * b;
+    }
+
+    // Division method
+    public float divide(float a, float b)
+    throws DivisionByZero {
+
+        // Check divide by zero
+        if (b == 0)
+
+            // Throw custom exception
+            throw new DivisionByZero();
+
+        // Return division result
+        return a / b;
+    }
+}
+
+// Main server class
+public class CalculatorServer {
+
+    public static void main(String args[]) {
+
+        try {
+
+            // Initialize ORB
+            ORB orb = ORB.init(args, null);
+
+            // Get reference to RootPOA
+            POA rootpoa = POAHelper.narrow(
+
+                orb.resolve_initial_references("RootPOA")
+            );
+
+            // Activate POA manager
+            rootpoa.the_POAManager().activate();
+
+            // Create servant object
+            CalculatorImpl calculator = new CalculatorImpl();
+
+            // Set ORB
+            calculator.setORB(orb);
+
+            // Convert servant to CORBA object reference
+            org.omg.CORBA.Object ref =
+
+                rootpoa.servant_to_reference(calculator);
+
+            // Narrow generic object to Calculator type
+            Calculator href = CalculatorHelper.narrow(ref);
+
+            // Get reference to Naming Service
+            org.omg.CORBA.Object objRef =
+
+                orb.resolve_initial_references("NameService");
+
+            // Narrow naming reference
+            NamingContextExt ncRef =
+
+                NamingContextExtHelper.narrow(objRef);
+
+            // Create object name path
+            NameComponent path[] =
+
+                ncRef.to_name("Calculator");
+
+            // Bind object in naming service
+            ncRef.rebind(path, href);
+
+            // Server ready message
+            System.out.println("Calculator Server is running...");
+
+            // Wait for client requests
+            orb.run();
+
+        } catch (Exception e) {
+
+            // Print server exception
+            System.err.println(
+                "Server exception: " + e.getMessage()
+            );
+
+            e.printStackTrace();
+        }
+    }
+}
+
+//CalculatorClient.java
+
+import CalculatorApp.*;          // Import generated CORBA files
+import org.omg.CORBA.*;          // Import CORBA classes
+import org.omg.CosNaming.*;      // Import Naming Service classes
+
+public class CalculatorClient {
+
+    public static void main(String args[]) {
+
+        try {
+
+            // Initialize ORB
+            ORB orb = ORB.init(args, null);
+
+            // Get reference to Naming Service
+            org.omg.CORBA.Object objRef =
+
+                orb.resolve_initial_references("NameService");
+
+            // Narrow naming reference
+            NamingContextExt ncRef =
+
+                NamingContextExtHelper.narrow(objRef);
+
+            // Resolve remote Calculator object
+            Calculator calculator =
+
+                CalculatorHelper.narrow(
+
+                    ncRef.resolve_str("Calculator")
+                );
+
+            // Call remote add method
+            System.out.println(
+
+                "Addition (10 + 5): " +
+
+                calculator.add(10, 5)
+            );
+
+            // Call remote subtract method
+            System.out.println(
+
+                "Subtraction (10 - 5): " +
+
+                calculator.subtract(10, 5)
+            );
+
+            // Call remote multiply method
+            System.out.println(
+
+                "Multiplication (10 * 5): " +
+
+                calculator.multiply(10, 5)
+            );
+
+            try {
+
+                // Call remote divide method
+                System.out.println(
+
+                    "Division (10 / 2): " +
+
+                    calculator.divide(10, 2)
+                );
+
+                // This should raise exception
+                System.out.println(
+
+                    "Division (10 / 0): " +
+
+                    calculator.divide(10, 0)
+                );
+
+            } catch (DivisionByZero e) {
+
+                // Handle divide by zero exception
+                System.out.println(
+
+                    "Error: Division by zero is not allowed!"
+                );
+            }
+
+        } catch (Exception e) {
+
+            // Print client exception
+            System.err.println(
+
+                "Client exception: " + e.getMessage()
+            );
+
+            e.printStackTrace();
+        }
+    }
+}
+
+
+# Commands to run
+Step 1 — Check Java Version
+java -version
+
+IMPORTANT
+Use Java 1.8 for CORBA.
+Because newer Java versions removed CORBA support.
+
+Step 2 — Generate CORBA Files
+idlj -fall Calculator.idl
+
+What happens?
+This command generates:
+Stub classes
+Skeleton classes
+Helper classes
+Holder classes
+inside CalculatorApp folder.
+
+Step 3 — Compile Files
+javac CalculatorApp/*.java *.java
+
+Meaning
+Compiles:
+generated CORBA files
+server file
+client file
+
+Step 4 — Start ORBD Service
+orbd -ORBInitialPort 1050 -ORBInitialHost localhost
+Meaning
+Starts CORBA Naming Service.
+
+IMPORTANT:
+Keep this terminal open.
+
+Step 5 — Open New Terminal and Run Server
+java CalculatorServer -ORBInitialPort 1050 -ORBInitialHost localhost
+
+Expected Output:
+
+Calculator Server is running...
+Step 6 — Open Another Terminal and Run Client
+java CalculatorClient -ORBInitialPort 1050 -ORBInitialHost localhost
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+
+When client writes:
+
+calculator.add(10,5);
+
+This method executes on SERVER, not on client.
+
+Internally:
+
+Client sends request to ORB
+ORB contacts server
+Server executes method
+Result returned to client
+
+This is distributed object communication using CORBA.
+
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is CORBA?
+Middleware for distributed object communication.
+
+Q2. What is ORB?
+Object Request Broker.
+Handles communication between client and server.
+
+Q3. What is IDL?
+Interface Definition Language.
+
+Defines remote methods.
+
+Q4. Why use idlj command?
+To generate CORBA Java files from IDL.
+
+Q5. What is Naming Service?
+Stores remote object references.
+
+Q6. What is POA?
+Portable Object Adapter.
+Manages servant objects.
+
+Q7. What is narrow()?
+Converts generic CORBA object into specific type.
+
+Q8. Why use Java 1.8?
+CORBA support exists in Java 1.8.
+
+Q9. Difference between RMI and CORBA?
+RMI	          CORBA
+Java only	Multi-language
+Simple	        Complex
+Java-specific	Platform independent
+
+Q10. What is servant object?
+Object implementing remote methods.
+Here:
+CalculatorImpl
+is servant object.

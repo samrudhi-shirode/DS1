@@ -1,0 +1,295 @@
+## Assignment1: RMI 
+
+//ArithmeticService.java
+
+import java.rmi.Remote;               // Import Remote interface
+import java.rmi.RemoteException;      // Import RemoteException
+
+// Remote interface
+public interface ArithmeticService extends Remote {
+
+    // Remote method for addition
+    double add(double a, double b) throws RemoteException;
+
+    // Remote method for subtraction
+    double subtract(double a, double b) throws RemoteException;
+
+    // Remote method for multiplication
+    double multiply(double a, double b) throws RemoteException;
+
+    // Remote method for division
+    double divide(double a, double b) throws RemoteException;
+}
+
+//ArithmeticServiceImpl.java
+
+import java.rmi.RemoteException;                 // Handles remote errors
+import java.rmi.server.UnicastRemoteObject;      // Makes object remotely accessible
+
+// Implementation class
+public class ArithmeticServiceImpl extends UnicastRemoteObject
+implements ArithmeticService {
+
+   // Constructor
+   public ArithmeticServiceImpl() throws RemoteException {
+
+      // Parent constructor automatically called
+   }
+
+   // Addition method
+   public double add(double var1, double var3)
+   throws RemoteException {
+
+      // Return addition result
+      return var1 + var3;
+   }
+
+   // Subtraction method
+   public double subtract(double var1, double var3)
+   throws RemoteException {
+
+      // Return subtraction result
+      return var1 - var3;
+   }
+
+   // Multiplication method
+   public double multiply(double var1, double var3)
+   throws RemoteException {
+
+      // Return multiplication result
+      return var1 * var3;
+   }
+
+   // Division method
+   public double divide(double var1, double var3)
+   throws RemoteException {
+
+      // Check divide by zero
+      if (var3 == 0.0) {
+
+         // Throw exception if denominator is zero
+         throw new RemoteException("Cannot divide by zero");
+
+      } else {
+
+         // Return division result
+         return var1 / var3;
+      }
+   }
+}
+
+//ArithmeticServer.java
+import java.rmi.Naming;                    // Used for binding remote object
+import java.rmi.registry.LocateRegistry;   // Used for creating registry
+
+public class ArithmeticServer {
+
+    public static void main(String[] args) {
+
+        try {
+
+            // Start RMI registry on default port 1099
+            LocateRegistry.createRegistry(1099);
+
+            // Create remote object
+            ArithmeticServiceImpl arithmeticService =
+            new ArithmeticServiceImpl();
+
+            // Bind remote object with name ArithmeticService
+            Naming.rebind(
+                "rmi://localhost/ArithmeticService",
+                arithmeticService
+            );
+
+            // Server started successfully
+            System.out.println("Arithmetic Server is ready...");
+
+        } catch (Exception e) {
+
+            // Print exception
+            e.printStackTrace();
+        }
+    }
+}
+
+//ArithmeticClient.java
+
+import java.rmi.Naming;         // Used for remote object lookup
+import java.util.Scanner;       // Used for user input
+
+public class ArithmeticClient {
+
+    public static void main(String[] args) {
+
+        try {
+
+            // Lookup remote object from RMI registry
+            ArithmeticService arithmeticService =
+
+                (ArithmeticService) Naming.lookup(
+
+                    "rmi://localhost/ArithmeticService"
+                );
+
+            // Create scanner object
+            Scanner scanner = new Scanner(System.in);
+
+            // Input first number
+            System.out.print("Enter the first number: ");
+            double num1 = scanner.nextDouble();
+
+            // Input second number
+            System.out.print("Enter the second number: ");
+            double num2 = scanner.nextDouble();
+
+            // Display operation menu
+            System.out.println("\nChoose an operation:");
+            System.out.println("1. Add");
+            System.out.println("2. Subtract");
+            System.out.println("3. Multiply");
+            System.out.println("4. Divide");
+
+            // Input user choice
+            System.out.print("Enter your choice (1-4): ");
+
+            int choice = scanner.nextInt();
+
+            // Variable to store result
+            double result = 0;
+
+            // Execute selected operation
+            switch (choice) {
+
+                // Remote add method call
+                case 1:
+                    result =
+                    arithmeticService.add(num1, num2);
+                    break;
+
+                // Remote subtract method call
+                case 2:
+                    result =
+                    arithmeticService.subtract(num1, num2);
+                    break;
+
+                // Remote multiply method call
+                case 3:
+                    result =
+                    arithmeticService.multiply(num1, num2);
+                    break;
+
+                // Remote divide method call
+                case 4:
+                    result =
+                    arithmeticService.divide(num1, num2);
+                    break;
+
+                // Invalid choice
+                default:
+
+                    System.out.println("Invalid choice");
+                    return;
+            }
+
+            // Display final result
+            System.out.println("Result: " + result);
+
+            // Close scanner
+            scanner.close();
+
+        } catch (Exception e) {
+
+            // Print exception
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+# How to Execute:
+Step 1 — Compile All Files
+javac *.java
+Meaning:Compiles all Java files into .class files.
+
+Step 2 — Start RMI Registry
+rmiregistry
+Meaning:Starts RMI registry on default port 1099.
+Registry stores remote object references.
+
+IMPORTANT:
+Keep this terminal running.
+
+Step 3 — Open New Terminal and Run Server
+java ArithmeticServer
+
+Expected Output:
+
+Arithmetic Server is ready...
+Meaning
+Registry created
+Remote object created
+Object bound successfully
+Step 4 — Open Another Terminal and Run Client
+java ArithmeticClient
+
+
+
+
+
+
+
+
+
+
+
+
+MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+
+When client writes:
+
+arithmeticService.add(num1, num2);
+
+This method does NOT execute on client.
+
+Internally:
+
+Client sends request to server
+Server executes method
+Result sent back to client
+
+This is called:
+
+Remote Method Invocation (RMI)
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is RMI?
+Java technology for remote method calling.
+
+Q2. Why extend Remote interface?
+To make methods remotely accessible.
+
+Q3. Why extend UnicastRemoteObject?
+To export object for remote communication.
+
+Q4. What is RMI Registry?
+Stores remote object references.
+
+Q5. What is Naming.lookup()?
+Used by client to find remote object.
+
+Q6. Why do we use localhost?
+Server running on same machine.
+
+Q7. Which port does RMI use?
+1099 by default.
+
+Q8. Why are multiple terminals needed?
+One for registry
+One for server
+One for client
+
+Q9. What happens if server is not running?
+Client gets connection error.
+
+Q10. What is stub in RMI?
+Client-side proxy object.

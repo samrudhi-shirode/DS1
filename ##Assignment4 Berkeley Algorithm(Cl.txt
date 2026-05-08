@@ -1,0 +1,261 @@
+##Assignment4: Berkeley Algorithm(Clock Synchronisation)
+
+import random      # Used to generate random network delay
+
+# Class representing a network node
+class Node:
+
+    # Constructor
+    def __init__(self, node_id, clock_time):
+
+        # Store node id
+        self.node_id = node_id
+
+        # Store clock time
+        self.clock_time = clock_time
+
+
+    # Method to return current clock time
+    def get_time(self):
+
+        return self.clock_time
+
+
+    # Method to adjust clock time
+    def adjust_time(self, offset):
+
+        # Add offset to clock
+        self.clock_time += offset
+
+
+    # String representation of object
+    def __repr__(self):
+
+        return f"Node {self.node_id}: {self.clock_time:.2f} sec"
+
+
+
+# Coordinator class inherits Node class
+class Coordinator(Node):
+
+    # Method for clock synchronization
+    def synchronize_clocks(self, nodes):
+
+        print("Polling times from all nodes...")
+
+        # Dictionary to store time differences
+        times = {}
+
+        # STEP 1 — Collect time differences
+        for node in nodes:
+
+            # Skip coordinator itself
+            if node.node_id == self.node_id:
+                continue
+
+            # Simulate network delay
+            delay = random.uniform(0.1, 0.5)
+
+            # Adjust node time using half delay
+            # assuming symmetric delay
+            node_time = node.get_time() + delay / 2
+
+            # Store time difference
+            times[node.node_id] = node_time - self.clock_time
+
+            # Display adjusted time
+            print(
+
+                f"Node {node.node_id} time: "
+                f"{node.get_time():.2f}, "
+                f"adjusted for delay: {node_time:.2f}"
+            )
+
+        # Add coordinator time difference
+        times[self.node_id] = 0.0
+
+        # STEP 2 — Calculate average offset
+        average_offset = sum(times.values()) / len(times)
+
+        print(
+
+            f"\nCalculated average offset: "
+            f"{average_offset:.2f} seconds"
+        )
+
+        # STEP 3 — Adjust clocks
+        for node in nodes:
+
+            # Calculate correction offset
+            offset = average_offset - times[node.node_id]
+
+            # Adjust node clock
+            node.adjust_time(offset)
+
+            # Display adjustment
+            print(
+
+                f"Adjusting Node "
+                f"{node.node_id} by "
+                f"{offset:+.2f} seconds"
+            )
+
+        print("\nSynchronization complete.\n")
+
+
+
+# Main program starts here
+if __name__ == "__main__":
+
+    # Create nodes with different clock times
+    nodes = [
+
+        Coordinator(0, 100.0),   # Coordinator node
+
+        Node(1, 102.0),
+
+        Node(2, 98.5),
+
+        Node(3, 101.2),
+
+        Node(4, 99.8),
+    ]
+
+    # Display initial clock times
+    print("Initial times:")
+
+    for node in nodes:
+
+        print(node)
+
+    # Select coordinator
+    coordinator = nodes[0]
+
+    # Synchronize clocks
+    coordinator.synchronize_clocks(nodes)
+
+    # Display final synchronized clocks
+    print("Final times after synchronization:")
+
+    for node in nodes:
+
+        print(node)
+
+
+
+## Command to Run
+python code.py
+OR
+python3 code.py
+
+
+
+## MOST IMPORTANT CONCEPT OF WHOLE PRACTICAL
+Different systems in distributed systems have:
+different clocks
+different times
+This causes problems like:
+wrong logging
+synchronization errors
+event ordering problems
+Berkeley Algorithm synchronizes all clocks.
+
+
+
+
+HOW BERKELEY ALGORITHM WORKS
+STEP 1 — Coordinator Polls All Nodes
+Coordinator asks:
+"What is your current time?"
+
+STEP 2 — Nodes Send Their Times
+Example:
+NodeTime01001102298.53101.2499.8
+
+STEP 3 — Network Delay Adjustment
+Network delay occurs during communication.
+Program simulates this using:
+random.uniform(0.1, 0.5)
+
+STEP 4 — Average Time Calculated
+Coordinator calculates:
+Average Offset
+
+STEP 5 — Clocks Adjusted
+Coordinator sends correction offsets.
+Example:
++1.5 sec-0.8 sec
+All clocks become synchronized.
+
+MOST IMPORTANT CODE CONCEPTS
+Node Class
+Represents a system/node in distributed system.
+
+Coordinator Class
+Acts as master node.
+Responsible for synchronization.
+
+get_time()
+Returns current node time.
+
+adjust_time()
+Changes clock value using offset.
+
+random.uniform()
+Simulates network delay.
+
+average_offset
+Average correction value.
+
+Expected Output
+Initial times:Node 0: 100.00 secNode 1: 102.00 secNode 2: 98.50 secNode 3: 101.20 secNode 4: 99.80 sec
+After synchronization:
+Final times after synchronization:Node 0: 100.45 secNode 1: 100.22 secNode 2: 100.24 secNode 3: 100.23 secNode 4: 100.36 sec
+All clocks become nearly equal.
+
+INTERNAL WORKING OF PRACTICAL
+STEP 1:
+Coordinator polls nodes.
+STEP 2:
+Nodes send clock times.
+STEP 3:
+Network delay considered.
+STEP 4:
+Average offset calculated.
+STEP 5:
+Correction offsets sent.
+STEP 6:
+Nodes adjust clocks.
+STEP 7:
+All clocks synchronized.
+
+VERY IMPORTANT VIVA QUESTIONS
+Q1. What is clock synchronization?
+Matching clocks across distributed systems.
+
+Q2. What is Berkeley Algorithm?
+Centralized clock synchronization algorithm.
+
+Q3. Who is coordinator?
+Master node controlling synchronization.
+
+Q4. Why network delay is considered?
+Because communication takes time.
+
+Q5. What is offset?
+Difference between local time and average time.
+
+Q6. Why use average time?
+To minimize total clock drift.
+
+Q7. Difference between Berkeley and NTP?
+BerkeleyNTPInternal averageUses UTC serverNo external clockExternal server required
+
+Q8. Why not directly set exact time?
+To avoid sudden clock jumps.
+
+Q9. What happens if coordinator fails?
+Synchronization stops.
+
+Q10. Is Berkeley centralized or distributed?
+Centralized algorithm.
